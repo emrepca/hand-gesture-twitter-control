@@ -14,6 +14,7 @@ while True:
     processed_img_retweet = hand_processor.retweet_func(img)
     #cv.imshow("Retweet processing", processed_img_retweet)
 
+    processed_img_scroll = hand_processor.scroll_func(img)
 
     if cv.waitKey(1) & 0xFF == 27:
         break
