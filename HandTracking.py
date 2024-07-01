@@ -42,7 +42,7 @@ log_in_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/div
 log_in_button.click()
 
 time.sleep(4)
-keyboard.press_and_release('j') #ilk tweete geç
+#keyboard.press_and_release('j') #ilk tweete geç
 
 '''
 log_in_button = driver.find_element(By.XPATH, "//div[@data-testid = 'LoginForm_Login_Button']")
@@ -66,6 +66,7 @@ while camera.isOpened():
     processed_scroll_down_func = hand_processor.scroll_down_func(hlms, img)
     processed_scroll_up_func = hand_processor.scroll_up_func(hlms, img)
     processed_bookmark_func = hand_processor.bookmark_func(hlms, img)
+    processed_comment_func = hand_processor.comment_func(hlms, img)
     processed_empty_func = hand_processor.empty_func(hlms, img)
 
     cv.imshow("WebCam", processed_like_func)

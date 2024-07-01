@@ -3,6 +3,8 @@ import mediapipe
 import keyboard
 import time
 from selenium.webdriver.common.by import By
+import threading
+import speech_recognition as sr
 
 
 class HandProcessor:
@@ -15,6 +17,7 @@ class HandProcessor:
         self.last_scroll_down_time = 0
         self.last_scroll_up_time = 0
         self.last_bookmark_time = 0
+        self.last_comment_time = 0
 
         self.cooldown_time = 2  # 2 seconds cooldown
         self.driver = driver
@@ -175,18 +178,103 @@ class HandProcessor:
                         handlandmarks.landmark[20].y > handlandmarks.landmark[19].y and
                         handlandmarks.landmark[4].y < handlandmarks.landmark[8].y and
                         handlandmarks.landmark[4].x < handlandmarks.landmark[1].x):
-                        print("Bookmark!")
 
-                        current_time = time.time()
-                        if current_time - self.last_bookmark_time > self.cooldown_time:
-                            self.bookmark_tweet()
-                            self.last_bookmark_time = current_time
+                        thumb_tip = handlandmarks.landmark[4]
+                        index_tip = handlandmarks.landmark[8]
+
+                        thumb_x, thumb_y = int(thumb_tip.x * width), int(thumb_tip.y * height)
+                        index_x, index_y = int(index_tip.x * width), int(index_tip.y * height)
+
+                        distance = ((thumb_x - index_x) ** 2 + (thumb_y - index_y) ** 2) ** 0.5
+
+                        if distance > 15:
+                            print("Bookmark!")
+
+                            current_time = time.time()
+                            if current_time - self.last_bookmark_time > self.cooldown_time:
+                                self.bookmark_tweet()
+                                self.last_bookmark_time = current_time
 
     def bookmark_tweet(self):
         try:
             keyboard.press_and_release('b')
         except Exception as e:
             print("Failed to bookmark tweet.")
+
+    def comment_func(self, hlms, imgRGB):
+        height, width, _ = imgRGB.shape
+
+        if hlms.multi_hand_landmarks:
+            for handlandmarks in hlms.multi_hand_landmarks:
+                for fingerNum, landmark in enumerate(handlandmarks.landmark):
+                    positionX, positionY = int(landmark.x * width), int(landmark.y * height)
+
+                    thumb_tip = handlandmarks.landmark[4]
+                    index_tip = handlandmarks.landmark[8]
+
+                    thumb_x, thumb_y = int(thumb_tip.x * width), int(thumb_tip.y * height)
+                    index_x, index_y = int(index_tip.x * width), int(index_tip.y * height)
+
+                    distance1 = ((thumb_x - index_x) ** 2 + (thumb_y - index_y) ** 2) ** 0.5
+                    # print(f"distance1: {distance1}")
+
+                    index_tip = handlandmarks.landmark[12]
+
+                    thumb_x, thumb_y = int(thumb_tip.x * width), int(thumb_tip.y * height)
+                    index_x, index_y = int(index_tip.x * width), int(index_tip.y * height)
+
+                    distance2 = ((thumb_x - index_x) ** 2 + (thumb_y - index_y) ** 2) ** 0.5
+                    # print(f"distance2: {distance2}")
+
+                    index_tip = handlandmarks.landmark[16]
+
+                    thumb_x, thumb_y = int(thumb_tip.x * width), int(thumb_tip.y * height)
+                    index_x, index_y = int(index_tip.x * width), int(index_tip.y * height)
+
+                    distance3 = ((thumb_x - index_x) ** 2 + (thumb_y - index_y) ** 2) ** 0.5
+                    # print(f"distance3: {distance3}")
+
+                    index_tip = handlandmarks.landmark[20]
+
+                    thumb_x, thumb_y = int(thumb_tip.x * width), int(thumb_tip.y * height)
+                    index_x, index_y = int(index_tip.x * width), int(index_tip.y * height)
+
+                    distance4 = ((thumb_x - index_x) ** 2 + (thumb_y - index_y) ** 2) ** 0.5
+                    # print(f"distance4: {distance4}")
+
+                    if (distance1 < 80 and distance2 < 30 and distance3 < 30 and distance4 < 30):
+                        # print("comment")
+                        current_time = time.time()
+                        if current_time - self.last_comment_time > self.cooldown_time:
+                            self.last_comment_time = current_time
+                            threading.Thread(target=self.comment_tweet).start()
+
+    def comment_tweet(self):
+        try:
+            keyboard.press_and_release('r')
+            r = sr.Recognizer()
+            with sr.Microphone() as source:
+                try:
+                    # Mikrofonun en fazla 5 saniye içinde ses algılamasını bekler
+                    audio = r.listen(source, timeout=3, phrase_time_limit=10)
+                    voice = r.recognize_google(audio, language='tr-TR')
+                    print("Recognized voice:", voice)
+                    comment_field = self.driver.find_element(By.XPATH, "//div[@data-testid='tweetTextarea_0']")
+                    comment_field.send_keys(voice)
+                    comment_field_close = self.driver.find_element(By.XPATH,
+                                                                   '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[3]/div[2]/div[2]/div/div/div/div[2]/div[2]/div/div/div/button')
+                    comment_field_close.click()[0]
+
+                except sr.WaitTimeoutError:
+                    print("Time out: The microphone could not detect sound within 5 seconds.")
+                except sr.UnknownValueError:
+                    print("Unidentified voice: Voice recognition failed.")
+                except sr.RequestError as e:
+                    print("Request error; Google Web Speech API could not be reached; {0}".format(e))
+        except Exception as e:
+            print("Failed to comment tweet: {0}".format(e))
+
+
     def empty_func(self, hlms, imgRGB):
 
         height, width, _ = imgRGB.shape
