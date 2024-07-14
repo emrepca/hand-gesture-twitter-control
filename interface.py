@@ -35,7 +35,7 @@ class MainApp(QMainWindow):
         self.checkbox = QCheckBox("I accept the security agreement.")
         self.layout.addWidget(self.checkbox)
 
-        self.acceptButton = QPushButton("Kabul Et ve Devam Et")
+        self.acceptButton = QPushButton("Accept It and Move On")
         self.acceptButton.setEnabled(False)
         self.layout.addWidget(self.acceptButton)
 

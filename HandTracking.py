@@ -39,7 +39,7 @@ def start():
     input_password = driver.find_element(By.NAME, "password")
     input_password.send_keys(twitter_password)
 
-    log_in_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button")
+    log_in_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button/div")
     log_in_button.click()
 
     time.sleep(4)
